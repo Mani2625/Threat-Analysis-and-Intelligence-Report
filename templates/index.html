@@ -1,45 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Upload Log File</title>
-<style>
-    body {
+    <meta charset="UTF-8">
+    <title>Cyber Threat Log Analyzer</title>
+    <style>
+        body {
+        margin: 0;
         background-color: #000;
         color: #00ffcc;
-        font-family: monospace;
+        font-family: 'Courier New', Courier, monospace;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        height: 100vh;
-    }
-    h1 {
+        min-height: 100vh;
+        }
+
+        /* Header / Navbar */
+        header {
+        width: 100%;
+        padding: 20px;
+        background-color: #0a0a0a;
+        border-bottom: 1px solid #00cccc;
+        text-align: center;
+        position: fixed;
+        top: 0;
+        z-index: 1000;
+        }
+
+        header h2 {
         color: #00e6e6;
-    }
-    form {
-        margin-top: 20px;
-    }
-    input[type=file], input[type=submit] {
-        padding: 10px;
+        margin: 0;
+        font-size: 26px;
+        letter-spacing: 1px;
+        }
+
+        main {
+        margin-top: 120px;
+        text-align: center;
+        width: 90%;
+        max-width: 500px;
+        }
+
+        h1 {
+        color: #00e6e6;
+        font-size: 24px;
+        margin-bottom: 30px;
+        }
+
+        form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        }
+
+        input[type="file"],
+        select,
+        button {
+        padding: 12px;
         background-color: #111;
         border: 1px solid #00cccc;
         color: #00ffcc;
         border-radius: 5px;
+        font-family: monospace;
+        font-size: 14px;
+        }
+
+        button {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        }
+
+        button:hover {
+        background-color: #00cccc;
+        color: #000;
+        }
+
+        label {
+        font-size: 14px;
+        color: #00e6e6;
         margin-top: 10px;
-    }
-</style>
-</head>
+        }
+
+        footer {
+        margin-top: auto;
+        padding: 15px;
+        font-size: 12px;
+        color: #008080;
+        text-align: center;
+        }
+
+    </style>
+    </head>
     <body>
-        <h1>Cyber Threat Log Analyzer</h1>
+
+    <header>
+        <h2>Cyber Threat Intelligence Dashboard</h2>
+    </header>
+
+    <main>
+        <h1>Upload Log File for Analysis</h1>
         <form action="/upload" method="POST" enctype="multipart/form-data">
-            <input type="file" name="logfile" required>
-            <label for="format">Select Report Format:</label>
-            <select name="format">
-                <option value="docx">Word (DOCX)</option>
-                <option value="pdf">PDF</option>
-            </select>
-            <button type="submit">Generate Report</button>
+        <input type="file" name="logfile" required>
+        
+        <label for="format">Select Report Format:</label>
+        <select name="format" id="format">
+            <option value="docx">Word (DOCX)</option>
+            <option value="pdf">PDF</option>
+        </select>
+        
+        <button type="submit">Generate Report</button>
         </form>
-        </body>
+    </main>
+
+    <footer>
+        &copy; 2025 Cyber Threat Analyzer | Powered by AI
+    </footer>
+
+</body>
 </html>
