@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, send_from_directory
+from flask import Flask, render_template, request, send_from_directory
 import os
 import markdown
 from werkzeug.utils import secure_filename
@@ -7,18 +7,19 @@ import google.generativeai as genai
 from fpdf import FPDF
 from docx import Document
 from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-# Load API key from .env
+# Load API key from .env file
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
+# Flask setup
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs("generated_reports", exist_ok=True)
 
 def clean_markdown_to_text(markdown_text):
-    # Remove Markdown syntax for better Word/PDF formatting
     lines = markdown_text.split('\n')
     clean_lines = []
     for line in lines:
@@ -30,9 +31,6 @@ def clean_markdown_to_text(markdown_text):
         clean_lines.append(line)
     return clean_lines
 
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from fpdf import FPDF
-
 def generate_report_file(markdown_text, filename="cyber_threat_report", format="pdf"):
     lines = clean_markdown_to_text(markdown_text)
     file_path = f"generated_reports/{filename}.{format}"
@@ -41,8 +39,7 @@ def generate_report_file(markdown_text, filename="cyber_threat_report", format="
         class PDF(FPDF):
             def header(self):
                 self.set_font("Times", 'I', 8)
-                self.set_y(10)
-                self.cell(0, 10, "", 0, 1, 'C')  # Empty header
+                self.cell(0, 10, "", 0, 1, 'C')
 
             def footer(self):
                 self.set_y(-15)
@@ -66,24 +63,23 @@ def generate_report_file(markdown_text, filename="cyber_threat_report", format="
             line = line.strip()
             if not line:
                 pdf.ln(5)
-                continue
             elif line.endswith(':') and not line.startswith("•"):
                 pdf.set_font("Times", 'B', 14)
                 pdf.multi_cell(0, 10, txt=line)
                 pdf.set_font("Times", size=11)
             else:
                 pdf.multi_cell(0, 10, txt=line)
+
         pdf.output(file_path)
 
     elif format == "docx":
         doc = Document()
 
-        # Set document margins (in inches)
-        sections = doc.sections
-        for section in sections:
-            section.top_margin = Pt(36)     # 0.5 inch
+        # Set margins (in points: 1 inch = 72 pt)
+        for section in doc.sections:
+            section.top_margin = Pt(36)
             section.bottom_margin = Pt(36)
-            section.left_margin = Pt(48)    # 0.67 inch
+            section.left_margin = Pt(48)
             section.right_margin = Pt(48)
 
         # Title
@@ -94,13 +90,12 @@ def generate_report_file(markdown_text, filename="cyber_threat_report", format="
         run.font.name = "Times New Roman"
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-        doc.add_paragraph()  # Add space after title
+        doc.add_paragraph()  # spacer
 
         for line in lines:
             line = line.strip()
             if not line:
                 doc.add_paragraph()
-                continue
             elif line.endswith(':') and not line.startswith("•"):
                 p = doc.add_paragraph()
                 run = p.add_run(line)
@@ -117,6 +112,10 @@ def generate_report_file(markdown_text, filename="cyber_threat_report", format="
 
     return file_path
 
+@app.route('/generate-report', methods=['POST'])
+def generate_report():
+    return upload()
+
 
 @app.route('/')
 def index():
@@ -129,11 +128,11 @@ def download_file(filename):
 @app.route('/upload', methods=['POST'])
 def upload():
     if 'logfile' not in request.files:
-        return 'No file part'
-    
+        return 'Error: No file part in the request.'
+
     file = request.files['logfile']
     if file.filename == '':
-        return 'No selected file'
+        return 'Error: No file selected for upload.'
 
     filename = secure_filename(file.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -142,8 +141,9 @@ def upload():
     with open(filepath, 'r') as f:
         log_data = f.read()
 
+    # Gemini Prompt
     prompt = f"""
-You are a cybersecurity analyst. Given the following log data, generate a detailed and professional Cyber Threat Intelligence Report in markdown covering:
+You are a cybersecurity analyst. Given the following log data, generate a detailed and professional Cyber Threat Intelligence Report of 8 to 10 pages in markdown covering:
 1. Executive Summary,
 2. Threat Overview,
 3. Threat Intelligence Findings,
@@ -166,8 +166,10 @@ Log Data:
     markdown_text = response.text
     html_report = markdown.markdown(markdown_text)
 
-    # Choose file format: "pdf" or "docx"
-    export_format = request.form.get("format", "docx")
+    export_format = request.form.get("format", "docx").lower()
+    if export_format not in ["pdf", "docx"]:
+        export_format = "docx"
+
     report_path = generate_report_file(markdown_text, format=export_format)
     download_filename = os.path.basename(report_path)
 
