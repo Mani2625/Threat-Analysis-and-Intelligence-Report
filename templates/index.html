@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Upload Log File</title>
+<style>
+    body {
+        background-color: #000;
+        color: #00ffcc;
+        font-family: monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+    h1 {
+        color: #00e6e6;
+    }
+    form {
+        margin-top: 20px;
+    }
+    input[type=file], input[type=submit] {
+        padding: 10px;
+        background-color: #111;
+        border: 1px solid #00cccc;
+        color: #00ffcc;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+</style>
+</head>
+    <body>
+        <h1>Cyber Threat Log Analyzer</h1>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="logfile" required>
+            <label for="format">Select Report Format:</label>
+            <select name="format">
+                <option value="docx">Word (DOCX)</option>
+                <option value="pdf">PDF</option>
+            </select>
+            <button type="submit">Generate Report</button>
+        </form>
+        </body>
+</html>
